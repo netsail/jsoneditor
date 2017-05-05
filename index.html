@@ -1,0 +1,116 @@
+
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>JSONEditor | Custom Ace</title>
+
+  <!-- load a custom version of Ace editor -->
+  <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ace.js"></script>-->
+  <script src="https://cdn.bootcss.com/ace/1.2.6/ace.js"></script>
+
+  <!--<script src="https://bgrins.github.io/filereader.js/filereader.js"></script>-->
+  <script src="./vendor/filereader.js"></script>
+  <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2014-11-29/FileSaver.min.js"></script>-->
+  <script src="https://cdn.bootcss.com/FileSaver.js/2014-11-29/FileSaver.min.js"></script>
+
+  <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+
+  <!-- load the minimalist version of JSONEditor, which doesn't have Ace embedded -->
+  <link href="./dist/jsoneditor.css" rel="stylesheet" type="text/css">
+  <script src="./dist/jsoneditor-minimalist.js"></script>
+
+  <style type="text/css">
+    #jsoneditor {
+      width: 500px;
+      height: 500px;
+    }
+
+    body, html {
+      font-family: "DejaVu Sans", sans-serif;
+    }
+
+    p, li {
+      width: 500px;
+      font-size: 10.5pt;
+    }
+
+    code {
+      background: #f5f5f5;
+    }
+  </style>
+
+</head>
+<body>
+<h1>JSON editor</h1>
+
+<p>
+  Load a JSON document: <input type="file" id="loadDocument" value="Load"/>
+</p>
+<p>
+  Save a JSON document: <input type="button" id="saveDocument" value="Save" />
+</p>
+
+<div id="jsoneditor"></div>
+
+<script>
+  // create the editor
+  var container = document.getElementById('jsoneditor');
+  var options = {
+    modes: ['text', 'code', 'tree', 'form', 'view'],
+    mode: 'code',
+    ace: ace
+  };
+  var defaultJSON = {
+    'array': [1, 2, 3],
+    'boolean': true,
+    'null': null,
+    'number': 123,
+    'object': {'a': 'b', 'c': 'd'},
+    'string': 'Hello World'
+  };
+
+  // Load a JSON document
+  FileReaderJS.setupInput(document.getElementById('loadDocument'), {
+    readAsDefault: 'Text',
+    on: {
+      load: function (event, file) {
+        editor.setText(event.target.result);
+      }
+    }
+  });
+
+  // Save a JSON document
+  document.getElementById('saveDocument').onclick = function () {
+    // Save Dialog
+    fname = window.prompt("Save as...");
+    
+    // Check json extension in file name
+    if(fname.indexOf(".")==-1){
+      fname = fname + ".json";
+    }else{
+      if(fname.split('.').pop().toLowerCase() == "json"){
+        // Nothing to do
+      }else{
+        fname = fname.split('.')[0] + ".json";
+      }
+    } 
+    var blob = new Blob([editor.getText()], {type: 'application/json;charset=utf-8'});
+    saveAs(blob, fname);
+  };
+
+  var editor;
+  $(function() {
+    if (location.hash) {
+      // load json file from another server
+      var url = location.hash.substring(1);
+      $.getJSON(url, function(data) {
+      	editor = new JSONEditor(container, options, data);
+      });
+    } else {
+      editor = new JSONEditor(container, options, defaultJSON);
+    }
+  });
+</script>
+</body>
+</html>
+
